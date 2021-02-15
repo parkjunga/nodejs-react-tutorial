@@ -1,27 +1,49 @@
-import React from 'react';
+import React, {useState} from 'react';
 import Dropzone from 'react-dropzone';
-import { Icon } from 'antd';
+import { Icon} from 'antd';
+import axios from 'axios';
 
-function FileUpload() {
-    return(
-        <div style={{ display: 'flex', justifyContent: 'space-between'}}>
-            <Dropzone onDrop={acceptedFiles => console.log(acceptedFiles)}>
-                {({getRootProps, getInputProps}) => (
-                    <section>
+function FileUpload(){
+
+    const [Image, setImages] =useState([])
+
+    const dropHandler = (files) => {
+
+        let formData = new FormData();
+
+        const config = {
+            header: {'content-type': 'multipart/form-data'}
+        }
+        formData.append('file',files[0]) // header랑 formData랑 같이 보내지않을경우 error가 발생하니 주의!
+        
+        // backend로 파일정보전달
+        axios.post('/api/product/image', formData , config)
+        .then(response => {
+            if(response.data.success) {
+                console.log(response.data);
+                setImages([...Images, response.data.filePath]) // 기존 이미지에 새로 추가한 이미지까지 
+            } else {
+                alert('파일을 저장하는데 실패하였습니다.')
+            }
+        })
+    }
+
+    return (
+        <div style={{ display:'flex', justifyContent: 'space-between'}}>
+            <Dropzone onDrop={dropHandler}>
+                {({ getRootProps, getInputProps}) => (
                     <div 
-                    style={{
-                        width: 300, height: 240, border: '1px solid lightgray',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    style={{ width:300, height: 240, border: '1px solid lightgray',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}
                     {...getRootProps()}>
-                        <input {...getInputProps()} />
-                        <Icon type="plus" style={{ fontSize: '3rem' }} />
+                    <input {...getInputProps()} />
+                    <Icon type="plus" style={{fontSize: '3rem'}} />
                     </div>
-                    </section>
                 )}
-                </Dropzone>
+            </Dropzone>
         </div>
     )
 }
 
-export default FileUpload
+export default FileUpload;
