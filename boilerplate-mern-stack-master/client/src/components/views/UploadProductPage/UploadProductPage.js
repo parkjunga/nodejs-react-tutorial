@@ -1,6 +1,7 @@
 import React, { useState} from 'react';
 import {Typography, Button, Form, Input } from 'antd';
 import FileUpload from '../../utils/FileUpload';
+import Axios from 'axios';
 const { TextArea } = Input;
 
 const Continents = [
@@ -13,13 +14,13 @@ const Continents = [
     {key:7, value: 'Japan'}
 ]
 
-function UploadProductPage() {
+function UploadProductPage(props) {
 
     const [Title, setTitle] = useState("")
     const [Description, setDescription] = useState("")
     const [Price, setPrice] = useState(0)
     const [Continent, setContinent ] = useState(1)
-    const [Image, setImage] = useState([])
+    const [Images, setImage] = useState([])
 
     const titleChangeHandler = (event) => {
         setTitle(event.currentTarget.value)   
@@ -37,14 +38,50 @@ function UploadProductPage() {
         setContinent(event.currentTarget.value)
     }
 
+    // FileUpload 값을 매개변수로 받음
+    const updateImages = (newImages) => {
+        setImage(newImages)
+    }
+
+    const submitHandler = (event) => {
+        event.preventDefault(); // event가 실행될때 자동 리프레쉬 안됨
+
+        // 유효성 체크 
+        if (!Title || !Description || !Price || !Continent || !Images ) {
+            return alert('모든 값을 넣어주셔야 됩니다.');
+        }
+
+        // 서버에 채운값을 리퀘스트로 전송
+
+        const body = {
+            // 로그인된 사람의 아이디
+            writer: props.user.userData._id, // 부모컴포넌트에서 전달된 props를 받아서 
+            title: Title,
+            description: Description,
+            price: Price,
+            images: Images,
+            continents: Continent
+        }
+
+        Axios.post('/api/product', body )
+            .then(response => {
+                if(response.data.success) {
+                    alert('상품 업로드에 성공 했습니다.');
+                    props.history.push('/')
+                } else {
+                    alert('상품 업로드에 실패 했습니다.')
+                }  
+            })
+    }
+
     return (
         <div style={{ maxWidth: '700px', margin:'2rem auto'}}>
             <div style={{ textAlign: 'center', marginBottom:'2rem' }}>
                 <h2>여행 상품 업로드</h2>
             </div>
-            <Form>
-                {/* DropZone */}
-                <FileUpload />
+            <Form onSubmit={submitHandler}>
+                {/* DropZone */} { /* 파일업로드 prop(매개변수로 전달 ) */}
+                <FileUpload refreshFunction={updateImages} />
             <br />
             <br />
             <label>이름</label>
@@ -66,9 +103,9 @@ function UploadProductPage() {
             </select>
             <br />
             <br />
-            <Button>
+            <button type="submit">
                 확인
-            </Button>
+            </button>
             </Form>
 
         </div>
