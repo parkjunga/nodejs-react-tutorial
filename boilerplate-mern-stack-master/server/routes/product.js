@@ -39,6 +39,7 @@ router.post('/products',(req,res) => {
 
     let limit = req.body.limit ? parseInt(req.body.limit) : 20; // 스트링일 경우 숫자로 바꿔줌
     let skip = req.body.skip ? parseInt(req.body.skip) : 0;
+    let term = req.body.searchTerm
 
     // filter가 추가됨 
     let findArgs = {};
@@ -46,21 +47,56 @@ router.post('/products',(req,res) => {
     for(let key in req.body.filters) {
         if (req.body.filters[key].length > 0) {
 
-            findArgs[key] = req.body.filters[key]
+            if (key === 'price') {
+                findArgs[key] = {
+                    $gte: req.body.filters[key][0], //이것보다크고
+                    $lte: req.body.filters[key][1] //이것보다 작은 mongodb에서 사용
+                }
+            } else {
+                findArgs[key] = req.body.filters[key]; 
+            }
         }
     }
 
     console.log('findArgs',findArgs);
 
-    // product collection에 들어 있는 모든 상품 정보를 가져오기
-    Product.find(findArgs) // 조건이 필요할 경우 ()안에 {} 에 넣음
+    if (term) {
+        // product collection에 들어 있는 모든 상품 정보를 가져오기
+        Product.find(findArgs) // 조건이 필요할 경우 ()안에 {} 에 넣음
+            .find({ $text: { $search: term }}) //find가 한개 더 추가됨, mongo db에서 제공해주는 $text
             .populate('writer')  // writer 정보 다 가져오려고 
             .skip(skip)
             .limit(limit) // 여기까지 쿼리 생성임 몽고디비에 
             .exec((err,productInfo) => {
                 if (err) return res.status(400).json({ success:false, err})
                 return res.status(200).json({success:true, productInfo , postSize: productInfo.length })
-            }) 
+        }) 
+    } else {
+        // product collection에 들어 있는 모든 상품 정보를 가져오기
+        Product.find(findArgs) // 조건이 필요할 경우 ()안에 {} 에 넣음
+            .populate('writer')  // writer 정보 다 가져오려고 
+            .skip(skip)
+            .limit(limit) // 여기까지 쿼리 생성임 몽고디비에 
+            .exec((err,productInfo) => {
+                if (err) return res.status(400).json({ success:false, err})
+                return res.status(200).json({success:true, productInfo , postSize: productInfo.length })
+        }) 
+    }
+
+    router.get('/products_by_id',(req,res) => {
+
+        let type = req.query.type
+        let productId = req.query.id
+        console.log(productId);
+        // productId와 같은 상품 정보를 가져온다.
+        Product.find({_id: productId})
+            .populate('writer') // writer에 모든정보를
+            .exec((err, product) => {
+                if (err) return res.status(400).send(err)
+                return res.status(200).send({success:true,product})
+            })
+    })
+
 
 })
 

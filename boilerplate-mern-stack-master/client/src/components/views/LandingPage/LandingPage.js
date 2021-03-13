@@ -4,6 +4,8 @@ import axios from 'axios';
 import { Icon, Col, Card, Row, Carousel } from 'antd';
 import Meta from 'antd/lib/card/Meta';
 import CheckBox from './Section/CheckBox';
+import RadioBox from './Section/RadioBox';
+import SearchFeature from './Section/SearchFeature';
 import ImageSlider from '../../utils/ImageSlider';
 import { continents, price } from './Section/Datas';
 
@@ -17,6 +19,7 @@ function LandingPage() {
         continents: [],
         price: []
     })
+    const [searchTerm, setSearchTerm] = useState("")
 
     useEffect(() => {
 
@@ -66,8 +69,9 @@ function LandingPage() {
         return <Col lg={6} md={8} xs={24} key={index}>
             {/** 이미지 슬라이드는 따로 빼서 ImageSlider 컴포넌트엥 따로 넣는다 */}
             <Card
-                cover={<ImageSlider images={product.images} />}
-            >
+                cover={<a href={`/product/${product._id}`}>
+                    <ImageSlider images={product.images} /></a>
+                 }>
                 <Meta 
                     title={product.title}
                     description={`$${product.price}`}
@@ -88,12 +92,43 @@ function LandingPage() {
         setSkip(0)
     }
 
+    const handlePrice = (value) => {
+        const data = price;
+        let array = [];
+
+        for (let key in data){
+            if (data[key]._id == parseInt(value)) {
+                array = data[key].array;
+            }
+        }
+        return array;
+    }
     const handleFiters = (filters,category) => {
         
         const newFilters = {...Filters} // continents랑 price가 들어있음
         newFilters[category] = filters
 
-        showFilteredResults(newFilters)
+        if (category == 'price') {
+            let priceValues = handlePrice(filters) 
+            newFilters[category] = priceValues // [0,199] [200,249]... 
+        }
+
+        showFilteredResults(newFilters);
+        setFilters(newFilters);
+    }
+
+    const updateSearchTerm = (newSearchTerm) => {
+       
+        let body = {
+            skip:0,
+            limit: Limit,
+            filters: Filters, // state값에 따라 더해짐
+            searchTerm: newSearchTerm
+        }
+
+        setSkip(0)
+        setSearchTerm(newSearchTerm) // SearchFeautre 값이 넣어짐
+        getProducts(body); // 이값에 맞게 서버에 처리해줘야됨.
     }
 
     return (
@@ -103,12 +138,21 @@ function LandingPage() {
             </div>
 
             {/* Filter */}
-
-            {/* CheckBox */}
-                <CheckBox list={continents} handleFiters={filters => handleFiters(filters, "continents")} />
-            {/* RadioBox */}
+            <Row gutter={[16,16]}>
+                {/* CheckBox */}
+                <Col lg={12} xs={24}>
+                   <CheckBox list={continents} handleFiters={filters => handleFiters(filters, "continents")} />                    
+                </Col>
+                {/* RadioBox */}
+                <Col lg={12} xs={24}>
+                    <RadioBox list={price} handleFiters={filters => handleFiters(filters, "price")} />
+                </Col>
+            </Row>
             {/* Search */}
-
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem auto'}}>
+                <SearchFeature 
+                    refreshFunction={updateSearchTerm}/>
+            </div>
             {/* Cards  */}   
 
             <Row gutter={[16,16]}>

@@ -39,6 +39,16 @@ const productSchema = mongoose.Schema({
     }
 }, { timestamps: true })
 
+// 검색시 어떤 조건에 걸리게 할껀지를 index를 건다. weight는 중요도임 숫자가 클수록 더 중요
+productSchema.index({
+    title: 'text',
+    description:'text'
+}, {
+    weights: {
+        tilte: 5,
+        description: 1
+    }
+})
 
 const Product = mongoose.model('Product', productSchema);
 

@@ -64,5 +64,6 @@ const price = [
 
 
 export {
-    continents
+    continents,
+    price
 }
