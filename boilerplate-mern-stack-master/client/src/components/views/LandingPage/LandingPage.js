@@ -151,7 +151,7 @@ function LandingPage() {
             {/* Search */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem auto'}}>
                 <SearchFeature 
-                    refreshFunction={updateSearchTerm}/>
+                     refreshFunction={updateSearchTerm}/>
             </div>
             {/* Cards  */}   
 
