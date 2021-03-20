@@ -7,6 +7,7 @@ import LoginPage from "./views/LoginPage/LoginPage.js";
 import RegisterPage from "./views/RegisterPage/RegisterPage.js";
 import UploadProductPage from './views/UploadProductPage/UploadProductPage.js';
 import DetailProductPage from './views/DetailProductPage/DetailProductPage.js';
+import CartPtage from './views/CartPage/CartPage.js';
 import NavBar from "./views/NavBar/NavBar";
 import Footer from "./views/Footer/Footer"
 
@@ -26,6 +27,7 @@ function App() {
           <Route exact path="/product/upload" component={Auth(UploadProductPage,true)}/> 
           {/* 아무나 들어올 수 있으니까 Auth에 두번째 매개변수 null 이 들어온다.*/}
           <Route exact path="/product/:productId" component={Auth(DetailProductPage,null)}/>  
+          <Route exact path="/user/cart" component={Auth(CartPage, true)}/>
         </Switch>
       </div>
       <Footer />
