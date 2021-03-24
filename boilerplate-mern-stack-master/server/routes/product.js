@@ -82,32 +82,32 @@ router.post('/products',(req,res) => {
                 return res.status(200).json({success:true, productInfo , postSize: productInfo.length })
         }) 
     }
+})
 
-    router.get('/products_by_id',(req,res) => {
+//id=123123123,324234234,324234234  type=array
+router.get('/products_by_id', (req, res) => {
 
-        let type = req.query.type
+    let type = req.query.type
+    let productIds = req.query.id
 
-        // 한개일 경우 
-        let productIds = req.query.id
+    if (type === "array") {
+        //id=123123123,324234234,324234234 이거를 
+        //productIds = ['123123123', '324234234', '324234234'] 이런식으로 바꿔주기
+        let ids = req.query.id.split(',')
+        productIds = ids.map(item => {
+            return item
+        })
 
+    }
 
-        // id=12345,1231515,123114 => id = ['12314515','1231151242','123144155 ']
-        if (type== "array") {
-            let ids = req.query.id.split(',')
-            productIds = ids.map(item => {
-                return item
-            })
-        }
+    //productId를 이용해서 DB에서  productId와 같은 상품의 정보를 가져온다.
 
-        // productId와 같은 상품 정보를 가져온다.
-        // 여러개라 $in으로 바꿔준다. productIds => {$id:} 포맷을 만들어준다음.
-        Product.find({_id: { $in: productIds}})
-            .populate('writer') // writer에 모든정보를
-            .exec((err, product) => {
-                if (err) return res.status(400).send(err)
-                return res.status(200).send( product)
-            })
-    })
+    Product.find({ _id: { $in: productIds } })
+        .populate('writer')
+        .exec((err, product) => {
+            if (err) return res.status(400).send(err)
+            return res.status(200).send(product)
+        })
 
 
 })
